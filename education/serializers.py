@@ -12,17 +12,18 @@ class LessonSerializers(serializers.ModelSerializer):
 
 class CourseSerializers(serializers.ModelSerializer):
     lessons_count = serializers.SerializerMethodField()
-    lessons = LessonSerializers(source='lesson_set', read_only=True, many=True )
+    lessons = LessonSerializers(source='lesson_set', read_only=True, many=True)
 
     class Meta:
         model = Course
         fields = '__all__'
 
         def get_lessons_count(self, instance):
-            return instance.leson_set.count()
+            return instance.lesson_set.count()
 
 
 class PaymentSerializers(serializers.ModelSerializer):
+
     class Meta:
         model = Payment
         fields = '__all__'

@@ -41,7 +41,7 @@ class Payment(models.Model):
     payment_date = models.DateTimeField(verbose_name='дата оплаты', auto_now_add=True)
     paid_course = models.ForeignKey(Course, on_delete=models.CASCADE, **NULLABLE)
     paid_lesson = models.ForeignKey(Lesson, on_delete=models.CASCADE, **NULLABLE)
-    summ = models.IntegerField(verbose_name='сумма')
+    summ = models.PositiveIntegerField(verbose_name='сумма')
     payment_method = (models.CharField(max_length=15, choices=CHOICES_PAYMENT_METHOD,
                                        verbose_name='способ оплаты', default='transfer'))
 

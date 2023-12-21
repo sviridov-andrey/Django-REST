@@ -2,7 +2,7 @@ from django.shortcuts import render
 from rest_framework import viewsets, generics
 
 from education.models import Course, Lesson, Payment
-from education.serializers import CourseSerializers, LesonSerializers, PaymentSerializers
+from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -11,21 +11,21 @@ class CourseViewSet(viewsets.ModelViewSet):
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
-    serializer_class = LesonSerializers
+    serializer_class = LessonSerializers
 
 
 class LessonListAPIView(generics.ListAPIView):
-    serializer_class = LesonSerializers
+    serializer_class = LessonSerializers
     queryset = Lesson.objects.all()
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
-    serializer_class = LesonSerializers
+    serializer_class = LessonSerializers
     queryset = Lesson.objects.all()
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
-    serializer_class = LesonSerializers
+    serializer_class = LessonSerializers
     queryset = Lesson.objects.all()
 
 
