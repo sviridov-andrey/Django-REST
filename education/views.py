@@ -1,6 +1,8 @@
 from rest_framework import viewsets, generics
+from rest_framework.permissions import IsAuthenticated
+
 from education.models import Course, Lesson, Payment
-from education.permassions import ModerateOrOwner
+from education.permissions import ModerateOrOwner
 from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers
 
 
@@ -43,4 +45,4 @@ class PaymentViewSet(viewsets.ModelViewSet):
     queryset = Payment.objects.all()
     filterset_fields = ('course__name', 'lesson__name', 'payment_method')
     ordering_fields = ('payment_date',)
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [IsAuthenticated]
