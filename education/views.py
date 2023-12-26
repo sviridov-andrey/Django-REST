@@ -1,9 +1,10 @@
-from rest_framework import viewsets, generics
+from rest_framework import viewsets, generics, status
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
-from education.models import Course, Lesson, Payment
+from education.models import Course, Lesson, Payment, Subscription
 from education.permissions import ModerateOrOwner
-from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers
+from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers, SubscriptionSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -46,3 +47,23 @@ class PaymentViewSet(viewsets.ModelViewSet):
     filterset_fields = ('course__name', 'lesson__name', 'payment_method')
     ordering_fields = ('payment_date',)
     permission_classes = [IsAuthenticated]
+
+
+class SubscriptionCreateAPIView(generics.CreateAPIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = [ModerateOrOwner]
+
+    def create(self, request, *args, **kwargs):
+        course_pk = self.kwargs.get('course_pk')
+
+        serializer = self.get_serializer(data={'user': request.user.pk, 'course': course_pk})
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        return Response({'Вы подписаны на курс.'}, status=status.HTTP_201_CREATED)
+
+
+class SubscriptionDestroyAPIView(generics.DestroyAPIView):
+    queryset = Subscription.objects.all()
+    serializer_class = SubscriptionSerializer
+    permission_classes = [ModerateOrOwner]
