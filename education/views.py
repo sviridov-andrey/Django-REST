@@ -4,44 +4,44 @@ from rest_framework.response import Response
 
 from education.models import Course, Lesson, Payment, Subscription
 from education.pagination import CourseLessonPaginator
-from education.permissions import ModerateOrOwner
+from education.permissions import Moderator, UserOwner
 from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers, SubscriptionSerializer
 
 
 class CourseViewSet(viewsets.ModelViewSet):
     serializer_class = CourseSerializers
     queryset = Course.objects.all()
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]
     pagination_class = CourseLessonPaginator
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
     serializer_class = LessonSerializers
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [IsAuthenticated]
 
 
 class LessonListAPIView(generics.ListAPIView):
     serializer_class = LessonSerializers
     queryset = Lesson.objects.all()
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]
     pagination_class = CourseLessonPaginator
 
 
 class LessonRetrieveAPIView(generics.RetrieveAPIView):
     serializer_class = LessonSerializers
     queryset = Lesson.objects.all()
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]
 
 
 class LessonUpdateAPIView(generics.UpdateAPIView):
     serializer_class = LessonSerializers
     queryset = Lesson.objects.all()
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]
 
 
 class LessonDestroyAPIView(generics.DestroyAPIView):
     queryset = Lesson.objects.all()
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]
 
 
 class PaymentViewSet(viewsets.ModelViewSet):
@@ -55,7 +55,7 @@ class PaymentViewSet(viewsets.ModelViewSet):
 class SubscriptionCreateAPIView(generics.CreateAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]
 
     def create(self, request, *args, **kwargs):
         course_pk = self.kwargs.get('course_pk')
@@ -69,4 +69,4 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
 class SubscriptionDestroyAPIView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
-    permission_classes = [ModerateOrOwner]
+    permission_classes = [Moderator | UserOwner]

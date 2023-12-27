@@ -25,7 +25,13 @@ class Command(BaseCommand):
             city = fake.city()
             country = fake.country()
             user = User.objects.create(email=email, password=password, phone=phone, city=city, country=country)
+            user.set_password(user.password)
+            user.save()
             users.append(user)
+        #
+        # for user in self.User.objects.all():
+        #     user.set_password(user.password)
+        #     user.save()
 
         courses = []
         for _ in range(3):
