@@ -1,13 +1,12 @@
-from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase, APIClient
 
-from education.models import Course, Lesson
+from education.models import Course, Lesson, Subscription
 from users.models import User
 
 
-class LessonTestCase(APITestCase):
+class InitialTestCase(APITestCase):
 
     def setUp(self):
         """Создание тестового пользователя, курса и урока"""
@@ -31,6 +30,14 @@ class LessonTestCase(APITestCase):
             preview=None
         )
 
+        self.subscription = Subscription.objects.create(
+            user=self.user,
+            course=self.course
+        )
+
+
+class LessonTestCase(InitialTestCase):
+
     def test_create(self):
         """Тестирование создания урока"""
         data = {
@@ -50,7 +57,7 @@ class LessonTestCase(APITestCase):
 
         self.assertEqual(
             response.json(),
-            {'id': 2,
+            {'id': self.lesson.id + 1,
              'name': 'test_lesson_2',
              'preview': None,
              'description': 'test_lesson_2',
@@ -112,7 +119,7 @@ class LessonTestCase(APITestCase):
     def test_update(self):
         """Тестирование изменения урока"""
         data = {
-            'name': 'test_lesson_upd'
+            'name': 'test_lesson_update'
         }
 
         response = self.client.patch(
@@ -128,7 +135,7 @@ class LessonTestCase(APITestCase):
         self.assertEqual(
             response.json(),
             {'id': self.lesson.id,
-             'name': 'test_lesson_upd',
+             'name': 'test_lesson_update',
              'preview': None,
              'description': self.lesson.description,
              'course': self.course.id,
@@ -148,49 +155,138 @@ class LessonTestCase(APITestCase):
             status.HTTP_204_NO_CONTENT
         )
 
-# class SubscriptionTestCase(APITestCase):
-#
-#     def setUp(self):
-#         self.client = APIClient()
-#         self.user = User.objects.create(email='user@test.com', password='test')
-#         self.client.force_authenticate(user=self.user)
-#
-#         self.course = Course.objects.create(
-#             name='test_course',
-#             description='test_course',
-#             owner=self.user
-#         )
-#
-#     def test_create(self):
-#         """Тестирование создания подписки"""
-#         subscription = {
-#             "user": self.user.id,
-#             "course": self.course.id
-#         }
-#
-#         response = self.client.post(
-#             reverse('courses:sub_create', kwargs={'pk': self.course.id}),
-#             data=subscription
-#         )
-#
-#         self.assertEqual(
-#             response.status_code,
-#             status.HTTP_201_CREATED
-#         )
-#
-#     def test_delete(self):
-#         """Тестирование удаления подписки"""
-#
-#         course = Subscription.objects.create(
-#             user=self.user,
-#             course=self.course
-#         )
-#
-#         response = self.client.delete(
-#             reverse('courses:sub_delete', kwargs={'pk': course.id})
-#         )
-#
-#         self.assertEqual(
-#             response.status_code,
-#             status.HTTP_204_NO_CONTENT
-#         )
+
+class SubscriptionTestCase(InitialTestCase):
+
+    def test_create(self):
+        """Тестирование создания подписки"""
+
+        data = {
+            "user": self.user.id,
+            "course": self.course.id
+        }
+
+        response = self.client.post(
+            reverse("education:subscription_create", kwargs={'course_pk': self.course.id}),
+            data=data
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+
+    def test_delete(self):
+        """Тестирование удаления подписки"""
+
+        response = self.client.delete(
+            reverse('education:subscription_delete', kwargs={'pk': self.subscription.id, })
+        )
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_204_NO_CONTENT
+        )
+
+
+class CourseTestCase(InitialTestCase):
+
+    def test_create(self):
+        """Тестирование создания курса"""
+        data = {
+            'name': 'test_course_2',
+            'description': 'test_course_2',
+            'owner': self.user.id
+        }
+
+        response = self.client.post('/education/', data=data)
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+
+        self.assertEqual(
+            response.json(),
+            {'id': 2,
+             'name': 'test_course_2',
+             'subscribed': False,
+             'preview': None,
+             'lessons': [],
+             'lessons_count': 0,
+             'description': 'test_course_2',
+             'owner': self.user.id,
+             }
+
+        )
+
+    def test_list(self):
+        """Тестирование вывода списка курсов"""
+        response = self.client.get('/education/')
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        self.assertEqual(
+            response.json(),
+            {'count': 1,
+             'next': None,
+             'previous': None,
+             'results': [{
+                 'id': 3,
+                 'subscribed': True,
+                 'lessons_count': 1,
+                 'lessons': [{
+                     'id': 2,
+                     'name': 'test_lesson',
+                     'preview': None,
+                     'description': 'test_lesson',
+                     'video': 'http://www.youtube.com/test_lesson',
+                     'course': 3,
+                     'owner': 2
+                 }],
+                 'name': 'test_course',
+                 'preview': None,
+                 'description': 'test_course',
+                 'owner': 2}]
+             }
+        )
+
+    def test_retrieve(self):
+        """Тестирование вывода одного курса"""
+
+        response = self.client.get('/education/', kwargs={'pk': self.course.id})
+
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        self.assertEqual(
+            response.json(),
+            {
+                'count': 1,
+                'next': None,
+                'previous': None,
+                'results': [{
+                    'id': 4,
+                    'subscribed': True,
+                    'lessons_count': 1,
+                    'lessons': [{
+                        'id': 3,
+                        'name': 'test_lesson',
+                        'preview': None,
+                        'description': 'test_lesson',
+                        'video': 'http://www.youtube.com/test_lesson',
+                        'course': 4,
+                        'owner': 3
+                    }],
+                    'name': 'test_course',
+                    'preview': None,
+                    'description': 'test_course',
+                    'owner': 3
+                }]
+            }
+        )

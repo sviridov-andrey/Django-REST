@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from education.models import Course, Lesson, Payment, Subscription
 from education.pagination import CourseLessonPaginator
-from education.permissions import Moderator, UserOwner
+from education.permissions import Moderator, UserOwner, UserPerm
 from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers, SubscriptionSerializer
 
 
@@ -69,4 +69,4 @@ class SubscriptionCreateAPIView(generics.CreateAPIView):
 class SubscriptionDestroyAPIView(generics.DestroyAPIView):
     queryset = Subscription.objects.all()
     serializer_class = SubscriptionSerializer
-    permission_classes = [Moderator | UserOwner]
+    permission_classes = [UserPerm]
