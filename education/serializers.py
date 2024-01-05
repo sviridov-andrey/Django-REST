@@ -38,6 +38,12 @@ class PaymentSerializers(serializers.ModelSerializer):
         fields = '__all__'
 
 
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ('course', 'amount', 'method')
+
+
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscription
