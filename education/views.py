@@ -8,6 +8,7 @@ from education.pagination import CourseLessonPaginator
 from education.permissions import Moderator, UserOwner, UserPerm
 from education.serializers import CourseSerializers, LessonSerializers, PaymentSerializers, SubscriptionSerializer, \
     PaymentCreateSerializer
+from education.tasks import check_update_course
 
 
 class CourseViewSet(viewsets.ModelViewSet):
@@ -15,6 +16,11 @@ class CourseViewSet(viewsets.ModelViewSet):
     queryset = Course.objects.all()
     permission_classes = [Moderator | UserOwner]
     pagination_class = CourseLessonPaginator
+
+    def perform_update(self, serializer):
+        course_update = serializer.save()
+        if course_update:
+            check_update_course.delay(course_update.course_id)
 
 
 class LessonCreateAPIView(generics.CreateAPIView):
@@ -70,6 +76,13 @@ class PaymentCreateAPIView(generics.CreateAPIView):
         stripe.api_key = os.getenv("STRIPE_API_KEY")
         course_id = request.data.get("course")
 
+        user = self.request.user
+        data = {"user": user.id, "course": course_id, "is_confirmed": True}
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+
         response = stripe.PaymentIntent.create(
             amount=2000,
             currency="usd",
@@ -81,12 +94,6 @@ class PaymentCreateAPIView(generics.CreateAPIView):
             payment_method="pm_card_visa",
         )
 
-        user = self.request.user
-        data = {"user": user.id, "course": course_id, "is_confirmed": True}
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
 
