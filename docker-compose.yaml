@@ -27,7 +27,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: .Dockerfile
+      dockerfile: ./Dockerfile
     container_name: app_container
     depends_on:
       db:
@@ -40,4 +40,4 @@ services:
       - "8000:8000"
     volumes:
       - .:/app
-    command: python manage.py migrate && python manage.py runserver 0.0.0.0:8000
+    command: bash -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
